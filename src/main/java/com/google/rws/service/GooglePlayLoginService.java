@@ -55,18 +55,6 @@ public class GooglePlayLoginService {
 		return forms.get(0);
 	}
 	
-	protected Map<String, String> createDataToSubmit(Element form) {
-		Map<String, String> map = new HashMap<String, String>();
-		log.info("Getting the form data");
-		Elements childs = form.getElementsByTag("input");
-		for (Element e: childs) {	
-			String name = e.attr("name");
-			String value = e.attr("value");
-			map.put(name, value);
-		}
-		return map;
-	}
-	
 	
 	protected MultiValueMap<String, String> getFormDataToSubmit(Element form) {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
@@ -80,14 +68,14 @@ public class GooglePlayLoginService {
 		return map;
 	}
 	
-	private Map<String, String> perform() {
+	private Map<String, String> perform(String email, String password) {
 		String htmlAuth = restTemplate.getForObject("https://accounts.google.com/ServiceLoginAuth?service=sj&continue=https://play.google.com/music/listen", String.class);
 		Element form = getForm(htmlAuth);
-		form.select("#Email").get(0).attr("value", "rodrigo.ruiz.baca@gmail.com");
+		form.select("#Email").get(0).attr("value", email);
 		MultiValueMap<String, String> map = getFormDataToSubmit(form);
 		String htmlProfile = restTemplate.postForObject("https://accounts.google.com/AccountLoginInfo", map, String.class);
 		form = getForm(htmlProfile);
-		form.select("#Passwd").get(0).attr("value", "r0dr1g0rrbR005");
+		form.select("#Passwd").get(0).attr("value", password);
 		map = getFormDataToSubmit(form);
 		
 		HttpHeaders headers = new HttpHeaders();
@@ -121,11 +109,17 @@ public class GooglePlayLoginService {
 		return mapcookies;
 	}
 	
-	public Map<String, String> login() {
-		if (cookies != null) {
+	public boolean isAuthenticated() {
+		return cookies != null && cookies.get("SID") != null;
+	}
+	
+	public Map<String, String> login(String email, String password) {
+		if (isAuthenticated()) {
+			log.info("The user is already authenticated");
 			return cookies;
 		} else {
-			cookies = perform();
+			log.info("The user is not authenticated yet, trying to perform a login");
+			cookies = perform(email, password);
 		}
 		return cookies;
 	}
