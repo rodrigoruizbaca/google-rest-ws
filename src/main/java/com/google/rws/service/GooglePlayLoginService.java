@@ -21,14 +21,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.rws.exception.LoginException;
+import com.google.rws.security.TokenUtil;
 
 @Service
 public class GooglePlayLoginService {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	
-	
+
 	private static final Logger log = Logger.getLogger(GooglePlayLoginService.class);
 	
 	/**
@@ -68,7 +68,8 @@ public class GooglePlayLoginService {
 		return map;
 	}
 	
-	public Map<String, String> login(String email, String password) {
+	
+	public String login(String email, String password) {
 		String htmlAuth = restTemplate.getForObject("https://accounts.google.com/ServiceLoginAuth?service=sj&continue=https://play.google.com/music/listen", String.class);
 		Element form = getForm(htmlAuth);
 		form.select("#Email").get(0).attr("value", email);
@@ -86,6 +87,7 @@ public class GooglePlayLoginService {
 		HttpEntity<String> response = restTemplate.exchange("https://accounts.google.com/ServiceLoginAuth", 
 				HttpMethod.POST, request, String.class);
 		HttpHeaders responseHeaders = response.getHeaders();
+		
 		List<String> values = responseHeaders.get("Set-Cookie");
 		if (values == null) {
 			log.error("Email or password incorrect");
@@ -97,17 +99,28 @@ public class GooglePlayLoginService {
 			log.error("Email or password incorrect");
 			throw new LoginException("Email or password incorrect");
 		}
-		Map<String, String> mapcookies = new HashMap<String, String>();	
+		
+		/*Map<String, String> mapcookies = new HashMap<String, String>();	
 		String cookie = sidCookie.get(0);
 		String[] sidArr = cookie.split(";");
 		for (String s: sidArr) {
 			String[] arr = s.split("=");
 			mapcookies.put(arr[0], arr[1]);
+		}*/
+		
+		//String expires = mapcookies.get("Expires");
+		
+		Map<String, List<String>> mapcookies = new HashMap<String, List<String>>();
+		
+		for (String k: responseHeaders.keySet()) {
+			mapcookies.put(k, responseHeaders.get(k));
 		}
 		
-		log.info(mapcookies.get("SID"));
+		String token = TokenUtil.getInstance().createToken(email);
 		
-		return mapcookies;
+		TokenUtil.getInstance().addToken(token, mapcookies);		
+		
+		return token;
 	}
 	
 	
