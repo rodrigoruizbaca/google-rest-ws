@@ -20,7 +20,8 @@ public class RestLoginController {
 	private GooglePlayLoginService loginService;
 	
 	@RequestMapping(value = "/email/{email}/password/{password}", method = RequestMethod.GET)
-	public Map<String, String> login(@PathVariable("email") String email, @PathVariable("password") String password) {
-		return loginService.login(email, password);
+	public Map<String, String> login(@PathVariable("email") String email, @PathVariable("password") String password) { 	
+		Map<String, String> body = loginService.login(email, password);
+		return body;
 	}
 }

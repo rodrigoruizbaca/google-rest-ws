@@ -27,7 +27,7 @@ public class GooglePlayLoginService {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	private Map<String, String> cookies;
+	
 	
 	private static final Logger log = Logger.getLogger(GooglePlayLoginService.class);
 	
@@ -50,7 +50,7 @@ public class GooglePlayLoginService {
 		log.info("Trying to access the ServiceLoginAuth page to obtain the authentication form");
 		Elements forms = doc.getElementsByTag("form");
 		if (forms.size() != 1) {
-			throw new LoginException("There are more than one form or any");
+			throw new LoginException("Email or password incorrect");
 		}
 		return forms.get(0);
 	}
@@ -68,16 +68,17 @@ public class GooglePlayLoginService {
 		return map;
 	}
 	
-	private Map<String, String> perform(String email, String password) {
+	public Map<String, String> login(String email, String password) {
 		String htmlAuth = restTemplate.getForObject("https://accounts.google.com/ServiceLoginAuth?service=sj&continue=https://play.google.com/music/listen", String.class);
 		Element form = getForm(htmlAuth);
 		form.select("#Email").get(0).attr("value", email);
 		MultiValueMap<String, String> map = getFormDataToSubmit(form);
-		String htmlProfile = restTemplate.postForObject("https://accounts.google.com/AccountLoginInfo", map, String.class);
-		form = getForm(htmlProfile);
+		if (form.select("#Passwd").size() == 0) {
+			String htmlProfile = restTemplate.postForObject("https://accounts.google.com/AccountLoginInfo", map, String.class);
+			form = getForm(htmlProfile);
+		}
 		form.select("#Passwd").get(0).attr("value", password);
 		map = getFormDataToSubmit(form);
-		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
@@ -109,18 +110,5 @@ public class GooglePlayLoginService {
 		return mapcookies;
 	}
 	
-	public boolean isAuthenticated() {
-		return cookies != null && cookies.get("SID") != null;
-	}
 	
-	public Map<String, String> login(String email, String password) {
-		if (isAuthenticated()) {
-			log.info("The user is already authenticated");
-			return cookies;
-		} else {
-			log.info("The user is not authenticated yet, trying to perform a login");
-			cookies = perform(email, password);
-		}
-		return cookies;
-	}
 }
