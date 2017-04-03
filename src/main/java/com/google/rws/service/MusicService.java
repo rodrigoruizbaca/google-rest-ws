@@ -3,6 +3,7 @@ package com.google.rws.service;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,17 +37,8 @@ public class MusicService {
 			if (!isValid) {
 				throw new ExpiredOrInvalidTokenException("The token is invalid or its expired, use login again");
 			}
-			log.info("Trying to get all the songs");
-			HttpHeaders headers = new HttpHeaders();
-			headers.putAll(TokenUtil.getInstance().getHeaders(token));
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 			
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(new LinkedMultiValueMap<String, String>(), headers);
-			
-			HttpEntity<String> response = restTemplate.exchange("https://music.google.com/music/exportids", HttpMethod.POST, request, String.class);
-			String body = response.getBody();
-			ObjectMapper mapper = new ObjectMapper();
-			List<Song> list = mapper.readValue(body, new TypeReference<List<Song>>() {});
+			List<Song> list = Lists.newArrayList();//mapper.readValue(body, new TypeReference<List<Song>>() {});
 			return list;
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);

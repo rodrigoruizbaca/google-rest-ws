@@ -2,7 +2,6 @@ package com.google.rws.security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,7 +12,7 @@ import org.springframework.security.crypto.codec.Hex;
 public class TokenUtil {
 	private static final String MAGIC_KEY = "RodRocks";
 	
-	private ConcurrentHashMap<String, Map<String, List<String>>> headersMap = new ConcurrentHashMap<String, Map<String, List<String>>>(); 
+	private ConcurrentHashMap<String, Map<String, String>> headersMap = new ConcurrentHashMap<String, Map<String, String>>(); 
 	
 	private static TokenUtil INSTANCE;
 	
@@ -57,11 +56,11 @@ public class TokenUtil {
 		return expires >= new DateTime().getMillis() && signature.equals(signatureToMatch);
 	}
 	
-	public void addToken(String token, Map<String, List<String>> headers) {
+	public void addToken(String token, Map<String, String> headers) {
 		headersMap.put(token, headers);
 	} 
 	
-	public Map<String, List<String>> getHeaders(String token) {
+	public Map<String, String> getHeaders(String token) {
 		return headersMap.get(token);
 	}
 }

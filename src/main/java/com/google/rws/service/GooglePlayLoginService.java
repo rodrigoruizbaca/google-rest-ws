@@ -3,6 +3,8 @@ package com.google.rws.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -100,21 +102,31 @@ public class GooglePlayLoginService {
 			throw new LoginException("Email or password incorrect");
 		}
 		
-		/*Map<String, String> mapcookies = new HashMap<String, String>();	
-		String cookie = sidCookie.get(0);
-		String[] sidArr = cookie.split(";");
-		for (String s: sidArr) {
-			String[] arr = s.split("=");
-			mapcookies.put(arr[0], arr[1]);
-		}*/
+		HttpHeaders listenHeaders = restTemplate.headForHeaders("https://play.google.com/music/listen");
 		
-		//String expires = mapcookies.get("Expires");
 		
-		Map<String, List<String>> mapcookies = new HashMap<String, List<String>>();
+		values = listenHeaders.get("Set-Cookie");
 		
-		for (String k: responseHeaders.keySet()) {
-			mapcookies.put(k, responseHeaders.get(k));
+		String cookie = values.stream().filter(c -> c.startsWith("xt")).findFirst().get();
+		
+		Pattern p = Pattern.compile("xt=([^;]*)");
+		Matcher m = p.matcher(cookie);
+		
+		String xt = "";
+		
+		if (m.find()) {
+			xt = m.group(1);
+		} else {
+			throw new LoginException("Email or password incorrect");
 		}
+		
+		Map<String, String> mapcookies = new HashMap<String, String>();
+		
+		mapcookies.put("xt", xt);
+		
+		/*for (String k: listenHeaders.keySet()) {
+			mapcookies.put(k, listenHeaders.get(k));
+		}*/
 		
 		String token = TokenUtil.getInstance().createToken(email);
 		
