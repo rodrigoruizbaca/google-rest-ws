@@ -12,7 +12,7 @@ import org.springframework.security.crypto.codec.Hex;
 public class TokenUtil {
 	private static final String MAGIC_KEY = "RodRocks";
 	
-	private ConcurrentHashMap<String, Map<String, String>> headersMap = new ConcurrentHashMap<String, Map<String, String>>(); 
+	private ConcurrentHashMap<String, Map<String, String>> cookiesMap = new ConcurrentHashMap<String, Map<String, String>>(); 
 	
 	private static TokenUtil INSTANCE;
 	
@@ -57,10 +57,10 @@ public class TokenUtil {
 	}
 	
 	public void addToken(String token, Map<String, String> headers) {
-		headersMap.put(token, headers);
+		cookiesMap.put(token, headers);
 	} 
 	
-	public Map<String, String> getHeaders(String token) {
-		return headersMap.get(token);
+	public Map<String, String> getCookies(String token) {
+		return cookiesMap.get(token);
 	}
 }

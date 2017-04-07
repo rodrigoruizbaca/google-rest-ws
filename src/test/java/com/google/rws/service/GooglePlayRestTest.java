@@ -1,5 +1,6 @@
 package com.google.rws.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.google.rws.dto.PlayList;
 import com.google.rws.security.TokenUtil;
 
 @RunWith(SpringRunner.class)
@@ -27,8 +29,12 @@ public class GooglePlayRestTest {
 	@Test
 	public void testGetAllSongs() {
 		String token = service.login(email, password);
-		Map<String, String> map = TokenUtil.getInstance().getHeaders(token);
+		Map<String, String> map = TokenUtil.getInstance().getCookies(token);
 		Assert.assertTrue(map.get("xt") != null);
+		List<PlayList> playList = musicService.getPlayLists(token, email);
+		Assert.assertTrue(!playList.isEmpty());
+		System.out.println(playList);
 	}
+	
 	
 }
